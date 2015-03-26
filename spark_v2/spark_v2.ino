@@ -11,8 +11,6 @@ const int ignitionInterrupt = 0;
 const int ledPinRight = 13;
 const int ledPinLeft = 12;
 
-const unsigned int pulsesPerRev = 1;
-
 unsigned long lastPulseTime = 0;
 unsigned long rpm = 0;
 unsigned long count = 0;
@@ -20,58 +18,40 @@ unsigned long count = 0;
 // put your setup code here, to run once:
 void setup() 
 {
-  //Serial.begin(9600);  
   pinMode(ignitionPin, INPUT);
   pinMode(ledPinRight, OUTPUT);
   pinMode(ledPinLeft, OUTPUT);
   
-  //attachInterrupt(ignitionInterrupt, &ignitionIsr, RISING);
   attachInterrupt(ignitionInterrupt, &blinkLED, RISING);
 }
 
+//called when the circuit detects a spark
 void blinkLED()
 {
   count++;
   
-  if(count % 2 == 0)
-  {
-    digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(20);              // wait for a second
-    digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
-    delay(20);              // wait for a second
-  }
-  else
-  {
-    digitalWrite(12, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(20);              // wait for a second
-    digitalWrite(12, LOW);    // turn the LED off by making the voltage LOW
-    delay(20);              // wait for a second
-  }
+  //decide if we should light the left/right (front/back) cylinder leds
+  0 == count % 2 ? blinkBank(ledPinRight) : blinkBank(ledPinLeft);
   
+  //avoid overrun
   if(count > 4000000000)
   {
     count = 0;
   }
 }
 
-void ignitionIsr()
+void blinkBank(int pin)
 {
-  unsigned long now = micros();
-  unsigned long interval = now - lastPulseTime;
-	
-  //if it has been more than 5ms
-  if (interval > 5000)
-  {
-    //the longer the interval, the slower the engine is running
-    rpm = 60000000UL/(interval * pulsesPerRev);
-    lastPulseTime = now;
-  }  
+    digitalWrite(pin, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(20);                 // wait for a time
+    digitalWrite(pin, LOW);    // turn the LED off by making the voltage LOW
+    delay(20);                 // wait for a time
 }
 
 // put your main code here, to run repeatedly: 
 void loop() 
 {
   noInterrupts();
-  rpm_to_disp=int(rpm);
+  int(rpm);  //really just a no-op
   interrupts();  
 }
